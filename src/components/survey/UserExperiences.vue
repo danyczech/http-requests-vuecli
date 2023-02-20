@@ -6,7 +6,9 @@
         <base-button @click="loadExperiences">Load Submitted Experiences</base-button>
       </div>
       <p v-if="isLoading">Loading...</p>
-      <ul v-else="!isLoading">
+      <p v-else-if="!isLoading && error">{{ error }}</p>
+      <p v-else-if="!isLoading && (!results || results.length === 0)">No stored experiences found. Start adding some survey results first.</p>
+      <ul v-else>
         <survey-result
           v-for="result in results"
           :key="result.id"
@@ -31,11 +33,13 @@ export default {
     return {
       results: [],
       isLoading: false,
+      error: null
     }
   },
   methods: {
     loadExperiences() {
       this.isLoading = true;
+      this.error = null;
       fetch('https://vue-http-training-d374f-default-rtdb.europe-west1.firebasedatabase.app/surveys.json')
       .then((response)=> {
         if (response.ok) {
@@ -49,6 +53,10 @@ export default {
           results.push({id:id, name: data[id].name, rating:data[id].rating})
         }
         this.results = results;
+      })
+      .catch((err)=>{
+        this.isLoading = false;
+        this.error = err;
       });
     }
   },
